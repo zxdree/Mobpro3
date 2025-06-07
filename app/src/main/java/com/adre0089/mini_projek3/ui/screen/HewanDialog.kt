@@ -23,13 +23,23 @@ import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.network.JaketApi
 import com.adre0089.mini_projek3.ui.theme.Mobpro3Theme
 
+// Pastikan definisi ini ada di tempat yang bisa diakses oleh HewanDialog
+val jacketTypes = listOf(
+    "Bomber Jacket", "Denim Jacket", "Leather Jacket", "Parka", "Windbreaker",
+    "Blouson", "Track Jacket", "Military Jacket", "Puffer Jacket", "Fleece Jacket"
+)
+
+val jacketStatusOptions = listOf("Available", "Not Available")
+
+
+@OptIn(ExperimentalMaterial3Api::class) // Perlu ditambahkan untuk ExposedDropdownMenuBox
 @Composable
 fun HewanDialog(
     bitmap: Bitmap?,
     jaket: Jaket? = null,
     onDismissRequest: () -> Unit,
     onConfirmation: (String, String, String, String?) -> Unit,
-    onChangeImageRequest: () -> Unit = {} // Tambahkan event untuk ganti gambar
+    onChangeImageRequest: () -> Unit = {}
 ) {
     var nama by remember { mutableStateOf(jaket?.nama ?: "") }
     var jenis by remember { mutableStateOf(jaket?.jenis ?: "") }
@@ -80,31 +90,21 @@ fun HewanDialog(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Next
                     ),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth() // Tambahkan fillMaxWidth
                 )
 
-                OutlinedTextField(
-                    value = jenis,
-                    onValueChange = { jenis = it },
-                    label = { Text(stringResource(R.string.nama_latin)) },
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Next
-                    ),
-                    modifier = Modifier.padding(top = 8.dp)
+                // Dropdown untuk Jenis Jaket
+                JacketTypeDropdownInDialog( // Fungsi baru untuk dialog
+                    selectedType = jenis,
+                    onTypeSelected = { jenis = it },
+                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
                 )
 
-                OutlinedTextField(
-                    value = status,
-                    onValueChange = { status = it },
-                    label = { Text(stringResource(R.string.status)) },
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Next
-                    ),
-                    modifier = Modifier.padding(top = 8.dp)
+                // Dropdown untuk Status Jaket
+                JacketStatusDropdownInDialog( // Fungsi baru untuk dialog
+                    selectedStatus = status,
+                    onStatusSelected = { status = it },
+                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
                 )
 
                 Row(
@@ -135,6 +135,97 @@ fun HewanDialog(
         }
     }
 }
+
+// --- FUNGSI DROPDOWN UNTUK DIGUNAKAN DI DALAM DIALOG ---
+// Saya mengganti namanya menjadi `...InDialog` untuk menghindari konflik jika Anda juga punya di DetailScreen
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun JacketTypeDropdownInDialog(
+    selectedType: String,
+    onTypeSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false // Tambahkan isError jika Anda ingin validasi di dialog juga
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            modifier = modifier.menuAnchor(),
+            value = selectedType,
+            onValueChange = {},
+            readOnly = true,
+            isError = isError,
+            label = { Text("Jenis Jaket") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            placeholder = { Text("Pilih jenis jaket") },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            jacketTypes.forEach { type ->
+                DropdownMenuItem(
+                    text = { Text(type) },
+                    onClick = {
+                        onTypeSelected(type)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun JacketStatusDropdownInDialog(
+    selectedStatus: String,
+    onStatusSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false // Tambahkan isError jika Anda ingin validasi di dialog juga
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            modifier = modifier.menuAnchor(),
+            value = selectedStatus,
+            onValueChange = {},
+            readOnly = true,
+            isError = isError,
+            label = { Text("Status Jaket") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            placeholder = { Text("Pilih status jaket") },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            jacketStatusOptions.forEach { statusOption ->
+                DropdownMenuItem(
+                    text = { Text(statusOption) },
+                    onClick = {
+                        onStatusSelected(statusOption)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+// --- PREVIEWS ---
 
 @Preview(showBackground = true)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)

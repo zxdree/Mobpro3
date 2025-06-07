@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
     implementation(libs.moshi.kotlin)
-    implementation("io.coil-kt:coil-compose:2.5.0")
+//    implementation("io.coil-kt:coil-compose:2.5.0")
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.android.image.cropper)

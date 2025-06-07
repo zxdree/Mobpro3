@@ -1,14 +1,11 @@
 package com.adre0089.mini_projek3.network
 
-import android.graphics.Bitmap
 import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.model.JaketSatus
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.DELETE
@@ -18,9 +15,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
-import retrofit2.http.PartMap
 import retrofit2.http.Path
-import java.io.ByteArrayOutputStream
 
 // Pastikan URL ngrok Anda selalu terbaru
 // Ini adalah URL dasar untuk API (yang ada '/api/')
@@ -63,25 +58,17 @@ interface JaketApiService {
         @Path("id") id: String // Ganti @Query menjadi @Path karena id ada di URL path
     ): JaketSatus // Sesuaikan nama model respons
 
-    @Multipart
-    @PUT("jakets/{id}")
+    @Multipart // Tambahkan ini
+    @POST("jakets/{id}") // Tambahkan ini untuk operasi update
     suspend fun putJaket(
         @Header("Authorization") userId: String,
-        @Path("id") id: String,
-        @PartMap partMap: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part gambar: MultipartBody.Part? // Gambar opsional
+        @Path("id") id: String, // ID jaket yang akan diupdate
+        @Part("nama") nama: RequestBody,
+        @Part("jenis") jenis: RequestBody,
+        @Part("status") status: RequestBody,
+        @Part gambar: MultipartBody.Part? // Gambar bisa null jika tidak diupdate
     ): JaketSatus
-
 }
-
-fun Bitmap.toMultipartBody(): MultipartBody.Part {
-    val stream = ByteArrayOutputStream()
-    this.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-    val byteArray = stream.toByteArray()
-    val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
-    return MultipartBody.Part.createFormData("gambar", "gambar.jpg", requestBody)
-}
-
 
 object JaketApi {
     val service: JaketApiService by lazy {

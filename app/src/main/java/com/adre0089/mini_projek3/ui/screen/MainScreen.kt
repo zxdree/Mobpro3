@@ -110,24 +110,6 @@ fun MainScreen() {
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
     var selectedJaket: Jaket? by remember { mutableStateOf(null) }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            val inputStream = contentResolver.openInputStream(it)
-            bitmap = BitmapFactory.decodeStream(inputStream)
-        }
-    }
-
-
-    // Camera launcher
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) {
-        bitmap = it
-    }
-// State untuk jaket yang akan diupdate
-
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCroppedImage(context.contentResolver, it)
         if (bitmap != null) showHewanDialog = true
@@ -165,23 +147,26 @@ fun MainScreen() {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                // Untuk menambah baru, reset selectedJaket dan bitmap
-                selectedJaket = null
-                bitmap = null
-                val options = CropImageContractOptions(
-                    null, CropImageOptions(
-                        imageSourceIncludeGallery = false,
-                        imageSourceIncludeCamera = true,
-                        fixAspectRatio = true
+            // Hanya tampilkan FloatingActionButton jika user sudah login
+            if (user.email.isNotEmpty()) {
+                FloatingActionButton(onClick = {
+                    // Untuk menambah baru, reset selectedJaket dan bitmap
+                    selectedJaket = null
+                    bitmap = null
+                    val options = CropImageContractOptions(
+                        null, CropImageOptions(
+                            imageSourceIncludeGallery = true,
+                            imageSourceIncludeCamera = true,
+                            fixAspectRatio = true
+                        )
                     )
-                )
-                launcher.launch(options)
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(id = R.string.tambah_hewan)
-                )
+                    launcher.launch(options)
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(id = R.string.tambah_hewan)
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -221,6 +206,7 @@ fun MainScreen() {
                             viewModel.saveData(user.email, nama, jenis, status, bitmap!!)
                         } else {
                             // Tambahan opsional: tampilkan peringatan kalau bitmap null
+                            Toast.makeText(context, "Pilih gambar untuk jaket baru.", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         // Operasi UPDATE
@@ -232,9 +218,17 @@ fun MainScreen() {
                     bitmap = null
                 },
                 onChangeImageRequest = {
-                    // Buka galeri atau kamera di sini untuk ambil gambar baru
-                    // Misalnya: launcherGallery.launch(...)
-                    galleryLauncher.launch("image/*")
+                    // Tidak perlu null-kan selectedJaket dan bitmap di sini,
+                    // karena ini dipanggil dari HewanDialog yang sudah punya state itu.
+                    // Hasil dari launcher akan memperbarui bitmap di MainScreen.
+                    val options = CropImageContractOptions(
+                        null, CropImageOptions(
+                            imageSourceIncludeGallery = true,
+                            imageSourceIncludeCamera = true,
+                            fixAspectRatio = true
+                        )
+                    )
+                    launcher.launch(options)
                 }
             )
         }
@@ -370,15 +364,19 @@ private fun getCroppedImage(
 fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketClick: (Jaket) -> Unit) {
     Log.d("DEBUG", "ListItem - HewanId=${hewan.id}, currentUserId=$userId gmbar= ${hewan.gambar}")
 
-//    if (userId.isEmpty()){
-//        hewan.mine = true
-//    }
     var showDialog by remember { mutableStateOf(false) }
-
 
     Box(
         modifier = Modifier.padding(4.dp).border(1.dp, Color.Gray)
-            .clickable { onJaketClick(hewan) }, // Tambahkan clickable untuk edit
+            .clickable {
+                // Hanya izinkan klik untuk mengedit jika user sudah login
+                if (userId.isNotEmpty()) {
+                    onJaketClick(hewan)
+                } else {
+                    // Opsional: Tampilkan Toast atau pesan lain jika belum login
+                    // Toast.makeText(LocalContext.current, "Silakan login untuk mengedit", Toast.LENGTH_SHORT).show()
+                }
+            },
         contentAlignment = Alignment.BottomCenter
     ) {
         AsyncImage(
@@ -415,6 +413,7 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
             )
         }
 
+        // Tombol delete juga hanya tampil jika user sudah login
         if (userId.isNotEmpty()) {
             IconButton(
                 onClick = { showDialog = true },

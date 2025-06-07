@@ -90,40 +90,31 @@ class MainViewModel: ViewModel() {
             }
         }
     }
-    fun updateData(userId: String, id: String, nama: String, jenis: String, status: String, bitmap: Bitmap?) {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun updateData(userId: String, id: String, nama: String, jenis: String, status: String, bitmap: Bitmap?){
+        viewModelScope.launch(Dispatchers.IO){
             try {
-                val partMap = mapOf(
-                    "nama" to nama.trim().toRequestBody("text/plain".toMediaTypeOrNull()),
-                    "jenis" to jenis.trim().toRequestBody("text/plain".toMediaTypeOrNull()),
-                    "status" to status.trim().toRequestBody("text/plain".toMediaTypeOrNull())
-                )
-
-                val gambarPart = bitmap?.toMultipartBody()
-
-                Log.d("MainViewModel", "Update fields: nama=$nama, jenis=$jenis, status=$status, bitmap=$bitmap")
-
+                Log.d("MainViewModel", "Attempting to update data: JaketId= $id, userId: $userId, nama: $nama , Status $status , gambar $bitmap")
                 val result = JaketApi.service.putJaket(
-                    userId = userId,
-                    id = id,
-                    partMap = partMap,
-                    gambar = gambarPart
+                    userId,
+                    id,
+                    nama.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    jenis.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    status.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    bitmap?.toMultipartBody() // Kirim gambar hanya jika ada bitmap baru
                 )
-
                 if (result.status == "success") {
                     Log.d("MainViewModel", "Data updated successfully. Status: ${result.status}")
-                    retrieveData(userId)
+                    retrieveData(userId) // Refresh data after successful update
                 } else {
-                    Log.e("MainViewModel", "Update data failed: ${result.message}")
+                    Log.e("MainViewModel", "Update data failed with message: ${result.message}")
+                    throw Exception(result.message)
                 }
-            } catch (e: Exception) {
+            }catch (e: Exception){
                 Log.e("MainViewModel", "Failure updating data: ${e.message}", e)
                 errorMessage.value = "Error updating data: ${e.message}"
             }
         }
     }
-
-
 
     private fun Bitmap.toMultipartBody(): MultipartBody.Part {
         val stream = ByteArrayOutputStream()
