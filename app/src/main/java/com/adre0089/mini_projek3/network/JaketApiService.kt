@@ -1,11 +1,14 @@
 package com.adre0089.mini_projek3.network
 
+import android.graphics.Bitmap
 import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.model.JaketSatus
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.DELETE
@@ -13,14 +16,17 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.PartMap
 import retrofit2.http.Path
+import java.io.ByteArrayOutputStream
 
 // Pastikan URL ngrok Anda selalu terbaru
 // Ini adalah URL dasar untuk API (yang ada '/api/')
-private const val BASE_API_URL = "https://bda5-36-69-194-228.ngrok-free.app/api/"
+private const val BASE_API_URL = "https://0d1d-36-69-194-228.ngrok-free.app/api/"
 // Ini adalah URL dasar untuk aset (gambar, tanpa '/api/')
-private const val BASE_ASSET_URL = "https://bda5-36-69-194-228.ngrok-free.app/"
+private const val BASE_ASSET_URL = "https://0d1d-36-69-194-228.ngrok-free.app/"
 
 
 private val moshi = Moshi.Builder()
@@ -56,7 +62,26 @@ interface JaketApiService {
         @Header("Authorization") userId: String, // Jika UID tidak lagi relevan, header ini mungkin tidak diperlukan
         @Path("id") id: String // Ganti @Query menjadi @Path karena id ada di URL path
     ): JaketSatus // Sesuaikan nama model respons
+
+    @Multipart
+    @PUT("jakets/{id}")
+    suspend fun putJaket(
+        @Header("Authorization") userId: String,
+        @Path("id") id: String,
+        @PartMap partMap: Map<String, @JvmSuppressWildcards RequestBody>,
+        @Part gambar: MultipartBody.Part? // Gambar opsional
+    ): JaketSatus
+
 }
+
+fun Bitmap.toMultipartBody(): MultipartBody.Part {
+    val stream = ByteArrayOutputStream()
+    this.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+    val byteArray = stream.toByteArray()
+    val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
+    return MultipartBody.Part.createFormData("gambar", "gambar.jpg", requestBody)
+}
+
 
 object JaketApi {
     val service: JaketApiService by lazy {

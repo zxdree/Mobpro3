@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Mobpro3</string>
     <string name="gambar">Gambar %1$s</string>
@@ -11,4 +12,4 @@
     <string name="nama_latin">Nama latin</string>
     <string name="batal">Batal</string>
     <string name="simpan">Simpan</string>
-</resources>
+    <string name="status">Status</string> <string name="update">Update</string> </resources>

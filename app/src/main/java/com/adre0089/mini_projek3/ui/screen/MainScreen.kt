@@ -5,14 +5,17 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable // Tambahkan ini
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -78,7 +81,7 @@ import com.adre0089.mini_projek3.network.UserDataStore
 import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.network.JaketApi
 import com.adre0089.mini_projek3.ui.theme.Mobpro3Theme
-import com.adre0089.mobpro1.ui.screen.HewanDialog
+import com.adre0089.mini_projek3.ui.screen.HewanDialog
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -96,6 +99,7 @@ fun MainScreen() {
     val context = LocalContext.current
     val dataStore = UserDataStore(context)
     val user by dataStore.userFlow.collectAsState(User())
+    val contentResolver = context.contentResolver
 
     val viewModel: MainViewModel = viewModel()
     val errorMessage by viewModel.errorMessage
@@ -104,6 +108,26 @@ fun MainScreen() {
     var showHewanDialog by remember { mutableStateOf(false) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
+    var selectedJaket: Jaket? by remember { mutableStateOf(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val inputStream = contentResolver.openInputStream(it)
+            bitmap = BitmapFactory.decodeStream(inputStream)
+        }
+    }
+
+
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) {
+        bitmap = it
+    }
+// State untuk jaket yang akan diupdate
+
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCroppedImage(context.contentResolver, it)
         if (bitmap != null) showHewanDialog = true
@@ -142,6 +166,9 @@ fun MainScreen() {
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
+                // Untuk menambah baru, reset selectedJaket dan bitmap
+                selectedJaket = null
+                bitmap = null
                 val options = CropImageContractOptions(
                     null, CropImageOptions(
                         imageSourceIncludeGallery = false,
@@ -158,7 +185,16 @@ fun MainScreen() {
             }
         }
     ) { innerPadding ->
-        ScreenContent(viewModel,user.email, Modifier.padding(innerPadding))
+        ScreenContent(
+            viewModel = viewModel,
+            userId = user.email,
+            modifier = Modifier.padding(innerPadding),
+            onJaketClick = { jaket -> // Tambahkan callback untuk klik item
+                selectedJaket = jaket
+                bitmap = null // Reset bitmap, karena gambar akan dimuat dari URL lama jika tidak ada gambar baru
+                showHewanDialog = true
+            }
+        )
 
         if (showDialog) {
             ProfilDialog(
@@ -172,10 +208,37 @@ fun MainScreen() {
         if (showHewanDialog) {
             HewanDialog(
                 bitmap = bitmap,
-                onDismissRequest = { showHewanDialog = false }) { nama, jenis,satus-> viewModel.saveData(user.email, nama, jenis,satus, bitmap!!)
-                showHewanDialog = false
-            }
+                jaket = selectedJaket,
+                onDismissRequest = {
+                    showHewanDialog = false
+                    selectedJaket = null
+                    bitmap = null
+                },
+                onConfirmation = { nama, jenis, status, id ->
+                    if (id == null) {
+                        // Operasi SIMPAN (tambah baru)
+                        if (bitmap != null) {
+                            viewModel.saveData(user.email, nama, jenis, status, bitmap!!)
+                        } else {
+                            // Tambahan opsional: tampilkan peringatan kalau bitmap null
+                        }
+                    } else {
+                        // Operasi UPDATE
+                        viewModel.updateData(user.email, id, nama, jenis, status, bitmap)
+                    }
+
+                    showHewanDialog = false
+                    selectedJaket = null
+                    bitmap = null
+                },
+                onChangeImageRequest = {
+                    // Buka galeri atau kamera di sini untuk ambil gambar baru
+                    // Misalnya: launcherGallery.launch(...)
+                    galleryLauncher.launch("image/*")
+                }
+            )
         }
+
 
         if (errorMessage != null) {
             Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
@@ -185,7 +248,7 @@ fun MainScreen() {
 }
 
 @Composable
-fun ScreenContent(viewModel: MainViewModel, userId: String ,modifier: Modifier = Modifier) {
+fun ScreenContent(viewModel: MainViewModel, userId: String ,modifier: Modifier = Modifier, onJaketClick: (Jaket) -> Unit) {
     val data by viewModel.data
     val status by viewModel.status.collectAsState()
 
@@ -209,7 +272,7 @@ fun ScreenContent(viewModel: MainViewModel, userId: String ,modifier: Modifier =
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(data) { ListItem(hewan = it, userId = userId, onDelete = {id -> viewModel.deleteData(userId, id)}) }
+                items(data) { ListItem(hewan = it, userId = userId, onDelete = {id -> viewModel.deleteData(userId, id)}, onJaketClick = onJaketClick) }
             }
         }
 
@@ -304,8 +367,8 @@ private fun getCroppedImage(
 
 
 @Composable
-fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit) {
-    Log.d("DEBUG", "ListItem - HewanId=${hewan.id}, mine?=${hewan.mine}, currentUserId=$userId gmbar= ${hewan.gambar}")
+fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketClick: (Jaket) -> Unit) {
+    Log.d("DEBUG", "ListItem - HewanId=${hewan.id}, currentUserId=$userId gmbar= ${hewan.gambar}")
 
 //    if (userId.isEmpty()){
 //        hewan.mine = true
@@ -314,7 +377,8 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit) {
 
 
     Box(
-        modifier = Modifier.padding(4.dp).border(1.dp, Color.Gray),
+        modifier = Modifier.padding(4.dp).border(1.dp, Color.Gray)
+            .clickable { onJaketClick(hewan) }, // Tambahkan clickable untuk edit
         contentAlignment = Alignment.BottomCenter
     ) {
         AsyncImage(
@@ -351,7 +415,7 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit) {
             )
         }
 
-        if (hewan.mine == true) {
+        if (userId.isNotEmpty()) {
             IconButton(
                 onClick = { showDialog = true },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).background(Color(0f,0f,0f,0.5f), shape = CircleShape)
@@ -386,6 +450,8 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit) {
         )
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
