@@ -5,6 +5,5 @@ data class Jaket(
     val nama: String,
     val jenis: String,
     val status: String,
-    val gambar: String,
-//    val mine:Boolean = false,
+    val gambar: String, //model
 )
