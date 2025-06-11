@@ -23,7 +23,7 @@ import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.network.JaketApi
 import com.adre0089.mini_projek3.ui.theme.Mobpro3Theme
 
-// Pastikan definisi ini ada di tempat yang bisa diakses oleh HewanDialog
+
 val jacketTypes = listOf(
     "Bomber Jacket", "Denim Jacket", "Leather Jacket", "Parka", "Windbreaker",
     "Blouson", "Track Jacket", "Military Jacket", "Puffer Jacket", "Fleece Jacket"
@@ -32,7 +32,7 @@ val jacketTypes = listOf(
 val jacketStatusOptions = listOf("Available", "Not Available")
 
 
-@OptIn(ExperimentalMaterial3Api::class) // Perlu ditambahkan untuk ExposedDropdownMenuBox
+
 @Composable
 fun HewanDialog(
     bitmap: Bitmap?,
@@ -90,18 +90,18 @@ fun HewanDialog(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Next
                     ),
-                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth() // Tambahkan fillMaxWidth
+                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
                 )
 
-                // Dropdown untuk Jenis Jaket
-                JacketTypeDropdownInDialog( // Fungsi baru untuk dialog
+
+                JacketTypeDropdownInDialog(
                     selectedType = jenis,
                     onTypeSelected = { jenis = it },
                     modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
                 )
 
-                // Dropdown untuk Status Jaket
-                JacketStatusDropdownInDialog( // Fungsi baru untuk dialog
+
+                JacketStatusDropdownInDialog(
                     selectedStatus = status,
                     onStatusSelected = { status = it },
                     modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
@@ -136,8 +136,7 @@ fun HewanDialog(
     }
 }
 
-// --- FUNGSI DROPDOWN UNTUK DIGUNAKAN DI DALAM DIALOG ---
-// Saya mengganti namanya menjadi `...InDialog` untuk menghindari konflik jika Anda juga punya di DetailScreen
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,7 +144,7 @@ fun JacketTypeDropdownInDialog(
     selectedType: String,
     onTypeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
-    isError: Boolean = false // Tambahkan isError jika Anda ingin validasi di dialog juga
+    isError: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -188,7 +187,7 @@ fun JacketStatusDropdownInDialog(
     selectedStatus: String,
     onStatusSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
-    isError: Boolean = false // Tambahkan isError jika Anda ingin validasi di dialog juga
+    isError: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
 
