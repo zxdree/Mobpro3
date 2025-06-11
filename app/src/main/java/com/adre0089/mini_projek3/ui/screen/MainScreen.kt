@@ -359,7 +359,7 @@ private fun getCroppedImage(
 @Composable
 fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketClick: (Jaket) -> Unit) {
     Log.d("DEBUG", "ListItem - HewanId=${hewan.id}, currentUserId=$userId gmbar= ${hewan.gambar}")
-
+    val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
 
     Box(
@@ -367,12 +367,11 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
             .padding(4.dp)
             .border(1.dp, Color.Gray)
             .clickable {
-                // Hanya izinkan klik untuk mengedit jika user sudah login
+
                 if (userId.isNotEmpty()) {
                     onJaketClick(hewan)
                 } else {
-                    // Opsional: Tampilkan Toast atau pesan lain jika belum login
-                    // Toast.makeText(LocalContext.current, "Silakan login untuk mengedit", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Silakan login untuk mengedit item ini.", Toast.LENGTH_SHORT).show()
                 }
             },
         contentAlignment = Alignment.BottomCenter
@@ -413,7 +412,7 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
             )
         }
 
-        // Tombol delete juga hanya tampil jika user sudah login
+
         if (userId.isNotEmpty()) {
             IconButton(
                 onClick = { showDialog = true },
