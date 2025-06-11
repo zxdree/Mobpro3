@@ -5,17 +5,15 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable // Tambahkan ini
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,19 +67,15 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
-
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.adre0089.mini_projek3.BuildConfig
-
 import com.adre0089.mini_projek3.R
+import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.model.User
 import com.adre0089.mini_projek3.network.ApiStatus
-import com.adre0089.mini_projek3.network.UserDataStore
-import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.network.JaketApi
+import com.adre0089.mini_projek3.network.UserDataStore
 import com.adre0089.mini_projek3.ui.theme.Mobpro3Theme
-import com.adre0089.mini_projek3.ui.screen.HewanDialog
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -99,7 +93,7 @@ fun MainScreen() {
     val context = LocalContext.current
     val dataStore = UserDataStore(context)
     val user by dataStore.userFlow.collectAsState(User())
-    val contentResolver = context.contentResolver
+//    val contentResolver = context.contentResolver
 
     val viewModel: MainViewModel = viewModel()
     val errorMessage by viewModel.errorMessage
