@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,9 +19,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -30,12 +33,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -49,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -68,6 +73,7 @@ import androidx.credentials.exceptions.ClearCredentialException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.adre0089.mini_projek3.BuildConfig
 import com.adre0089.mini_projek3.R
 import com.adre0089.mini_projek3.model.Jaket
@@ -113,11 +119,13 @@ fun MainScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = stringResource(id = R.string.app_name))
+                    Text(text = stringResource(id = R.string.app_name),
+                        color = Color(0xFFFB923C)
+                    )
                 },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = Color(0xFF171717), // Warna abu-abu gelap kehitaman (neutral-900)
+                    titleContentColor = Color(0xFFFB923C) // Warna teks judul
                 ),
                 actions = {
                     IconButton(onClick = {
@@ -131,36 +139,44 @@ fun MainScreen() {
                         }
 
                     }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_account_circle_24),
-                            contentDescription = stringResource(id = R.string.profile),
-                            tint = MaterialTheme.colorScheme.primary
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(user.photoUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = R.drawable.baseline_account_circle_24),
+                            modifier = Modifier.size(100.dp).clip(CircleShape).border(2.dp, Color(0xFFFB923C), CircleShape)
                         )
                     }
                 }
             )
         },
         floatingActionButton = {
-            // Hanya tampilkan FloatingActionButton jika user sudah login
             if (user.email.isNotEmpty()) {
-                FloatingActionButton(onClick = {
-                    // Untuk menambah baru, reset selectedJaket dan bitmap
-                    selectedJaket = null
-                    bitmap = null
-                    val options = CropImageContractOptions(
-                        null, CropImageOptions(
-                            imageSourceIncludeGallery = true,
-                            imageSourceIncludeCamera = true,
-                            fixAspectRatio = true
+                FloatingActionButton(
+                    onClick = {
+                        selectedJaket = null
+                        bitmap = null
+                        val options = CropImageContractOptions(
+                            null, CropImageOptions(
+                                imageSourceIncludeGallery = true,
+                                imageSourceIncludeCamera = true,
+                                fixAspectRatio = true
+                            )
                         )
-                    )
-                    launcher.launch(options)
-                }) {
+                        launcher.launch(options)
+                    },
+                    containerColor = Color(0xFFF97316),
+                    contentColor = Color.White
+                ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(id = R.string.tambah_hewan)
                     )
                 }
+
             }
         }
     ) { innerPadding ->
@@ -255,16 +271,38 @@ fun ScreenContent(viewModel: MainViewModel, userId: String ,modifier: Modifier =
 
         }
         ApiStatus.SUCCESS -> {
-            LazyVerticalGrid(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(4.dp),
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(data) { ListItem(hewan = it, userId = userId, onDelete = {id -> viewModel.deleteData(userId, id)}, onJaketClick = onJaketClick) }
+            if (data.isEmpty()) {
+                // Tampilkan pesan kalau data kosong
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Belum ada jaket yang ditambahkan.",
+                        color = Color.LightGray,
+                        fontSize = 16.sp
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(4.dp),
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(data) { jaket ->
+                        ListItem(
+                            hewan = jaket,
+                            userId = userId,
+                            onDelete = { id -> viewModel.deleteData(userId, id) },
+                            onJaketClick = onJaketClick
+                        )
+                    }
+                }
             }
         }
+
 
         ApiStatus.FAILED -> {
             Column(
@@ -365,7 +403,8 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
     Box(
         modifier = Modifier
             .padding(4.dp)
-            .border(1.dp, Color.Gray)
+            .border(1.dp, Color(0xFFFB923C))
+            .aspectRatio(1f)
             .clickable {
 
                 if (userId.isNotEmpty()) {
@@ -374,6 +413,7 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
                     Toast.makeText(context, "Silakan login untuk mengedit item ini.", Toast.LENGTH_SHORT).show()
                 }
             },
+
         contentAlignment = Alignment.BottomCenter
     ) {
         AsyncImage(
@@ -398,7 +438,7 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
         ) {
             Text(text = hewan.nama,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color =  Color(0xFFFB923C)
             )
             Text(text = hewan.jenis,
                 fontStyle = FontStyle.Italic,
@@ -408,7 +448,11 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
             Text(text = hewan.status,
                 fontStyle = FontStyle.Italic,
                 fontSize = 14.sp,
-                color = Color.White
+                color = if (hewan.status.equals("Available", ignoreCase = true)) {
+                    Color(0xFF22C55E) // Hijau (green-500)
+                } else {
+                    Color(0xFFEF4444) // Merah (red-500)
+                }
             )
         }
 
@@ -419,7 +463,7 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
-                    .background(Color(0f, 0f, 0f, 0.5f), shape = CircleShape)
+                    .background( Color(0xFFEF4444), shape = CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -431,26 +475,50 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
     }
 
     if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = "Konfirmasi Hapus") },
-            text = { Text(text = "Apakah Anda yakin ingin menghapus hewan ini?") },
-            confirmButton = {
-                Button(onClick = {
-                    showDialog = false
-                    onDelete(hewan.id)
-                }) {
-                    Text(text = "Ya")
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                containerColor = Color(0xFF1F1F1F), // Background gelap
+                title = {
+                    Text(
+                        text = "Konfirmasi Hapus",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Apakah Anda yakin ingin menghapus jaket ini?",
+                        color = Color.LightGray
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDialog = false
+                            onDelete(hewan.id)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)) // Tombol merah
+                    ) {
+                        Text("Ya", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        onClick = { showDialog = false },
+                        border = BorderStroke(1.dp, Color(0xFFFB923C)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color(0xFFFB923C)
+                        )
+                    ) {
+                        Text("Tidak")
+                    }
                 }
-            },
-            dismissButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text(text = "Tidak")
-                }
-            }
-        )
+            )
+        }
+
     }
-}
+
 
 
 

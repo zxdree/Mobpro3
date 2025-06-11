@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -23,15 +24,12 @@ import com.adre0089.mini_projek3.model.Jaket
 import com.adre0089.mini_projek3.network.JaketApi
 import com.adre0089.mini_projek3.ui.theme.Mobpro3Theme
 
-
 val jacketTypes = listOf(
     "Bomber Jacket", "Denim Jacket", "Leather Jacket", "Parka", "Windbreaker",
     "Blouson", "Track Jacket", "Military Jacket", "Puffer Jacket", "Fleece Jacket"
 )
 
 val jacketStatusOptions = listOf("Available", "Not Available")
-
-
 
 @Composable
 fun HewanDialog(
@@ -50,7 +48,8 @@ fun HewanDialog(
     Dialog(onDismissRequest = onDismissRequest) {
         Card(
             modifier = Modifier.padding(16.dp),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.Black)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -76,7 +75,8 @@ fun HewanDialog(
 
                 OutlinedButton(
                     onClick = { onChangeImageRequest() },
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFF97316))
                 ) {
                     Text(text = "Ganti Gambar")
                 }
@@ -90,16 +90,25 @@ fun HewanDialog(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Next
                     ),
-                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFFF97316),
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = Color(0xFFF97316),
+                        unfocusedLabelColor = Color.Gray,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White
+                    )
                 )
-
 
                 JacketTypeDropdownInDialog(
                     selectedType = jenis,
                     onTypeSelected = { jenis = it },
                     modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
                 )
-
 
                 JacketStatusDropdownInDialog(
                     selectedStatus = status,
@@ -115,14 +124,16 @@ fun HewanDialog(
                 ) {
                     OutlinedButton(
                         onClick = { onDismissRequest() },
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFF97316))
                     ) {
                         Text(stringResource(R.string.batal))
                     }
                     OutlinedButton(
                         onClick = { onConfirmation(nama, jenis, status, jaket?.id) },
                         enabled = nama.isNotEmpty() && jenis.isNotEmpty() && status.isNotEmpty(),
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFF97316), disabledContentColor = Color(0xFFF97316) )
                     ) {
                         Text(
                             text = stringResource(
@@ -135,8 +146,6 @@ fun HewanDialog(
         }
     }
 }
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,7 +170,15 @@ fun JacketTypeDropdownInDialog(
             label = { Text("Jenis Jaket") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             placeholder = { Text("Pilih jenis jaket") },
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFFF97316),
+                unfocusedBorderColor = Color.Gray,
+                focusedLabelColor = Color(0xFFF97316),
+                unfocusedLabelColor = Color.Gray,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White
+            )
         )
 
         ExposedDropdownMenu(
@@ -204,7 +221,15 @@ fun JacketStatusDropdownInDialog(
             label = { Text("Status Jaket") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             placeholder = { Text("Pilih status jaket") },
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFFF97316),
+                unfocusedBorderColor = Color.Gray,
+                focusedLabelColor = Color(0xFFF97316),
+                unfocusedLabelColor = Color.Gray,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White
+            )
         )
 
         ExposedDropdownMenu(
@@ -223,8 +248,6 @@ fun JacketStatusDropdownInDialog(
         }
     }
 }
-
-// --- PREVIEWS ---
 
 @Preview(showBackground = true)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
@@ -246,7 +269,7 @@ fun UpdateDialogPreview() {
     Mobpro3Theme {
         HewanDialog(
             bitmap = null,
-            jaket = Jaket("id123", "Jaket Preview", "Kulit", "Tersedia", "gambar.jpg"),
+            jaket = Jaket("id123", "Jaket Preview", "Kulit", "Available", "gambar.jpg"),
             onDismissRequest = {},
             onConfirmation = { _, _, _, _ -> }
         )
