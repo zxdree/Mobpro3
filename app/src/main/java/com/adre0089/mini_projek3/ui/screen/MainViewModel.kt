@@ -29,7 +29,6 @@ class MainViewModel: ViewModel() {
         viewModelScope.launch(Dispatchers.IO){
             status.value = ApiStatus.LOADING
             try {
-                // Log the API call attempt
                 Log.d("MainViewModel", "Attempting to retrieve data for userId: $userId")
                 val response = JaketApi.service.getJaket(userId)
                 data.value = response
@@ -56,7 +55,7 @@ class MainViewModel: ViewModel() {
                 )
                 if (result.status == "success") {
                     Log.d("MainViewModel", "Data saved successfully. Status: ${result.status}")
-                    retrieveData(userId) // Refresh data after successful save
+                    retrieveData(userId)
                 } else {
                     Log.e("MainViewModel", "Save data failed with message: ${result.message}")
                     throw Exception(result.message)
@@ -79,7 +78,7 @@ class MainViewModel: ViewModel() {
 
                 if (result.status == "success") {
                     Log.d("MainViewModel", "Data deleted successfully. Status: ${result.status}")
-                    retrieveData(userId) // Refresh data after successful delete
+                    retrieveData(userId)
                 } else {
                     Log.e("MainViewModel", "Delete data failed with message: ${result.message}")
                     throw Exception(result.message)
@@ -100,11 +99,11 @@ class MainViewModel: ViewModel() {
                     nama.toRequestBody("text/plain".toMediaTypeOrNull()),
                     jenis.toRequestBody("text/plain".toMediaTypeOrNull()),
                     status.toRequestBody("text/plain".toMediaTypeOrNull()),
-                    bitmap?.toMultipartBody() // Kirim gambar hanya jika ada bitmap baru
+                    bitmap?.toMultipartBody()
                 )
                 if (result.status == "success") {
                     Log.d("MainViewModel", "Data updated successfully. Status: ${result.status}")
-                    retrieveData(userId) // Refresh data after successful update
+                    retrieveData(userId)
                 } else {
                     Log.e("MainViewModel", "Update data failed with message: ${result.message}")
                     throw Exception(result.message)
@@ -118,7 +117,7 @@ class MainViewModel: ViewModel() {
 
     private fun Bitmap.toMultipartBody(): MultipartBody.Part {
         val stream = ByteArrayOutputStream()
-        compress(Bitmap.CompressFormat.JPEG, 80, stream) // Adjust quality if needed
+        compress(Bitmap.CompressFormat.JPEG, 80, stream)
         val byteArray = stream.toByteArray()
 
         val requestBody = byteArray.toRequestBody(
@@ -126,7 +125,7 @@ class MainViewModel: ViewModel() {
         )
 
         return MultipartBody.Part.createFormData(
-            "gambar", "gambar.jpg", requestBody // "image" should match the multipart key on your server
+            "gambar", "gambar.jpg", requestBody
         )
     }
 
