@@ -262,7 +262,9 @@ fun ScreenContent(viewModel: MainViewModel, userId: String ,modifier: Modifier =
         }
         ApiStatus.SUCCESS -> {
             LazyVerticalGrid(
-                modifier = modifier.fillMaxSize().padding(4.dp),
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(4.dp),
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
@@ -367,7 +369,9 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
     var showDialog by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier.padding(4.dp).border(1.dp, Color.Gray)
+        modifier = Modifier
+            .padding(4.dp)
+            .border(1.dp, Color.Gray)
             .clickable {
                 // Hanya izinkan klik untuk mengedit jika user sudah login
                 if (userId.isNotEmpty()) {
@@ -380,20 +384,22 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
         contentAlignment = Alignment.BottomCenter
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(
-                    JaketApi.getJaketImageUrl(hewan.gambar)
-                )
-                .crossfade(true)
-                .build(),
+            model = JaketApi.getJaketImageUrl(hewan.gambar),
             contentDescription = stringResource(R.string.gambar, hewan.nama),
             contentScale = ContentScale.Crop,
             placeholder = painterResource(id = R.drawable.loading_img),
             error = painterResource(id = R.drawable.baseline_broken_image_24),
-            modifier = Modifier.fillMaxWidth().padding(4.dp)
+            onError = { error ->
+                Log.d("IMAGE_ERROR", "ListItem: $error")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
         )
         Column(
-            modifier = Modifier.fillMaxWidth().padding(4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
                 .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.5f))
                 .padding(4.dp)
         ) {
@@ -417,7 +423,10 @@ fun ListItem(hewan: Jaket, userId: String, onDelete: (String) -> Unit, onJaketCl
         if (userId.isNotEmpty()) {
             IconButton(
                 onClick = { showDialog = true },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).background(Color(0f,0f,0f,0.5f), shape = CircleShape)
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp)
+                    .background(Color(0f, 0f, 0f, 0.5f), shape = CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,

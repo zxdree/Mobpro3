@@ -19,9 +19,9 @@ import retrofit2.http.Path
 
 // Pastikan URL ngrok Anda selalu terbaru
 // Ini adalah URL dasar untuk API (yang ada '/api/')
-private const val BASE_API_URL = "https://0d1d-36-69-194-228.ngrok-free.app/api/"
+private const val BASE_API_URL = "https://apinyaadre.sendiko.my.id/api/"
 // Ini adalah URL dasar untuk aset (gambar, tanpa '/api/')
-private const val BASE_ASSET_URL = "https://0d1d-36-69-194-228.ngrok-free.app/"
+private const val BASE_ASSET_URL = "https://apinyaadre.sendiko.my.id/"
 
 
 private val moshi = Moshi.Builder()
@@ -78,7 +78,7 @@ object JaketApi {
     // Fungsi untuk mendapatkan URL gambar
     // Parameter diubah menjadi 'gambar' karena di model Jaket Anda itu 'gambar'
     fun getJaketImageUrl(gambarFileName: String): String {
-        return "${BASE_ASSET_URL}storage/jaket_images/$gambarFileName"
+        return "${BASE_ASSET_URL}/storage/jaket_images/$gambarFileName"
     }
 }
 

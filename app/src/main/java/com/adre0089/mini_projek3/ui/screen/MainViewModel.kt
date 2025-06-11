@@ -34,7 +34,7 @@ class MainViewModel: ViewModel() {
                 val response = JaketApi.service.getJaket(userId)
                 data.value = response
                 status.value = ApiStatus.SUCCESS
-                Log.d("MainViewModel", "Data retrieved successfully. Item count: ${response.size}")
+                Log.d("MainViewModel", "Data retrieved successfully. Response ${response}}")
             }catch (e: Exception){
                 Log.e("MainViewModel", "Failure retrieving data: ${e.message}", e)
                 errorMessage.value = "Failed to load data: ${e.message}"
@@ -126,7 +126,7 @@ class MainViewModel: ViewModel() {
         )
 
         return MultipartBody.Part.createFormData(
-            "gambar", "jaket_images.jpg", requestBody // "image" should match the multipart key on your server
+            "gambar", "gambar.jpg", requestBody // "image" should match the multipart key on your server
         )
     }
 
